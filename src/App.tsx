@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
+import Markdown from "react-markdown";
 import { 
   Activity, 
   Users, 
@@ -27,6 +28,139 @@ import {
 import { motion, AnimatePresence } from "motion/react";
 import { GoogleGenAI } from "@google/genai";
 
+/* ── Translations ────────────────────────────────────── */
+
+type Language = "en" | "yo";
+
+const TRANSLATIONS = {
+  en: {
+    nav: {
+      dashboard: "Kernel",
+      wards: "Wards",
+      intelligence: "Intelligence",
+      staff: "Team",
+      settings: "Configs"
+    },
+    dashboard: {
+      title: "CIOS KERNEL",
+      subtitle: "Peace Officer",
+      description: "Artificial Intelligence tailored for Funmilola Home, Ogbomosho. Monitoring health vectors across geriatric wards with Zero-Law clinician oversight.",
+      searchBtn: "Command Search",
+      node: "Node: Ogbomosho-01",
+      protocols: "Essential Protocols",
+      emergency: "Emergency Alert",
+      handover: "Ward Handover",
+      inventory: "Supply Inventory",
+      stats: {
+        population: "Service User Population",
+        domains: "Care Domains",
+        alerts: "Pending Alerts",
+        precision: "AI Precision"
+      },
+      criticalMonitor: "Critical Monitor",
+      registeredModules: "Registered Care Modules"
+    },
+    serviceUsers: {
+      title: "Service User Registry",
+      subtitle: "Active Ward Monitoring",
+      filterAll: "Full Home for the Aged",
+      idLabel: "ID",
+      ageLabel: "Age"
+    },
+    advisory: {
+      title: "Intelligence Module",
+      sessionInit: "Session initialized. Doctor oversight required for all output.",
+      consultBtn: "Consult",
+      statusEnforced: "ZeroLaw Enforced"
+    },
+    staff: {
+      title: "Medical Personnel",
+      subtitle: "Authorized Clinical Staff"
+    },
+    settings: {
+      title: "System Config",
+      subtitle: "Cognitive Matrix Routing",
+      infrastructure: "Infrastructure",
+      logicStatus: "Logic Status",
+      routing: "Intelligence Routing",
+      reset: "Reset to Default"
+    },
+    status: {
+      authorized: "Kernel Synchronized",
+      unauthorized: "Awaiting Authorization",
+      simulating: "Simulation Active",
+      waitSim: "Waiting for Data Stimulation...",
+      liveFeed: "Live Kernel Feed",
+      nodeStatus: "Ogbomosho Node · Fully Active",
+      stimulateBtn: "Stimulate Demo",
+      stimulationLive: "Stimulation Live"
+    }
+  },
+  yo: {
+    nav: {
+      dashboard: "Kẹ́nẹ́lì",
+      wards: "Ibùgbé",
+      intelligence: "Ìmọ̀-Ẹ̀rọ",
+      staff: "Àwọn Òṣìṣẹ́",
+      settings: "Ìtòọ́jọ"
+    },
+    dashboard: {
+      title: "CIOS KẸ́NẸ́LÌ",
+      subtitle: "Oṣiṣẹ Alafia",
+      description: "Ìmọ̀-ẹ̀rọ tí a ṣe fún Ilé Funmilola, Ògbómọ̀ṣọ́. Olùṣọ́ ìlera kọjá àwọn ibùgbé àgbàlagbà pẹ̀lú àbojútó dókítà.",
+      searchBtn: "Wá Ìmọ̀",
+      node: "Ibi-iṣẹ́: Ògbómọ̀ṣọ́-01",
+      protocols: "Àwọn Ilana Pàtàkì",
+      emergency: "Ìpò Pàjáwìrì",
+      handover: "Ìjabọ̀ Iṣẹ́",
+      inventory: "Atokọ Ẹrù",
+      stats: {
+        population: "Iye Àwọn Aláìsàn",
+        domains: "Àwọn Ẹ̀ka Ìtọ́jú",
+        alerts: "Ìkìlọ̀ Tí Ó Kù",
+        precision: "Ìpéye Ìmọ̀-ẹ̀rọ"
+      },
+      criticalMonitor: "Alábòjútó Pàtàkì",
+      registeredModules: "Àwọn Ẹ̀ka Ìtọ́jú Tí Ó Wà"
+    },
+    serviceUsers: {
+      title: "Àkọsílẹ̀ Àwọn Ibùgbé",
+      subtitle: "Àyẹ̀wò Ibùgbé Tí Ó Wà",
+      filterAll: "Gbogbo Ilé Funmilola",
+      idLabel: "Nọ́m̀bà",
+      ageLabel: "Ọjọ́-orí"
+    },
+    advisory: {
+      title: "Ẹ̀ka Ìmọ̀-Ẹ̀rọ",
+      sessionInit: "Ìpàdé ti bẹ̀rẹ̀. Àyẹ̀wò dókítà ṣe pàtàkì fún gbogbo ìfúnni.",
+      consultBtn: "Beèrè",
+      statusEnforced: "Òfin ZeroLaw Wà"
+    },
+    staff: {
+      title: "Àwọn Òṣìṣẹ́ Ìlera",
+      subtitle: "Àwọn Òṣìṣẹ́ Tí A Gba Wọlé"
+    },
+    settings: {
+      title: "Ìtòọ́jọ Ìmọ̀-Ẹ̀rọ",
+      subtitle: "Àwọn Ètò Kẹ́nẹ́lì",
+      infrastructure: "Ìpìlẹ̀ Ètò",
+      logicStatus: "Ipò Ìmọ̀",
+      routing: "Ìtò Ìmọ̀-Ẹ̀rọ",
+      reset: "Tun Ṣètò Gbogbo Rẹ̀"
+    },
+    status: {
+      authorized: "Kẹ́nẹ́lì Ti Sopọ̀",
+      unauthorized: "Ìdurotì Ìfọwọ́sowọ́pọ̀",
+      simulating: "Ìdánrawò Ti Bẹ̀rẹ̀",
+      waitSim: "Ìdurotì fún Ìmọ̀-ìṣẹ́...",
+      liveFeed: "Ìfúnni Kẹ́nẹ́lì",
+      nodeStatus: "Ibi-iṣẹ́ Ògbómọ̀ṣọ́ · Ti Bẹ̀rẹ̀",
+      stimulateBtn: "Bẹ̀rẹ̀ Àyẹ̀wò",
+      stimulationLive: "Àyẹ̀wò Ti Bẹ̀rẹ̀"
+    }
+  }
+};
+
 /* ── AI Service Types ────────────────────────────────── */
 
 type AIProvider = "gemini" | "groq" | "openrouter" | "ollama" | "anthropic" | "openai";
@@ -46,7 +180,6 @@ const DEFAULT_AI_CONFIGS: AIConfig[] = [
   { provider: "ollama", model: "llama3", endpoint: "http://localhost:11434", priority: 4 },
 ];
 
-let aiClient: GoogleGenAI | null = null;
 
 /* ── Unified AI Router ──────────────────────────────────── */
 
@@ -186,7 +319,7 @@ interface ServiceUser {
 
 interface CareModule {
   id: string;
-  icon: React.ReactNode;
+  icon: React.ReactElement;
   label: string;
   color: string;
   desc: string;
@@ -278,10 +411,9 @@ const VitalCard = ({ label, value, unit, icon, warn }: { label: string, value: s
 interface SectionProps {
   onSelectServiceUser: (r: ServiceUser) => void;
   setIsSearchOpen?: (open: boolean) => void;
-  key?: string;
 }
 
-const Dashboard = ({ onSelectServiceUser, setIsSearchOpen }: SectionProps) => {
+const Dashboard = ({ onSelectServiceUser, setIsSearchOpen, serviceUsers = SERVICE_USERS, t }: SectionProps & { serviceUsers?: ServiceUser[], t: any }) => {
   const [logs] = useState([
     "KERNEL: Integrity check pass (100%)",
     "AGENT: Monitoring Node Ogbomosho-01",
@@ -296,35 +428,35 @@ const Dashboard = ({ onSelectServiceUser, setIsSearchOpen }: SectionProps) => {
         <div className="flex flex-col lg:flex-row gap-12 items-start">
           <div className="flex-1">
             <h4 className="font-mono text-[9px] text-g3/60 tracking-[0.4em] uppercase mb-4 flex items-center gap-3">
-              <span className="w-8 h-[1px] bg-g3/30" /> Kernel Identity: Active
+              <span className="w-8 h-[1px] bg-g3/30" /> {t.dashboard.node}: Active
             </h4>
             <h1 className="font-syne font-black text-5xl sm:text-6xl lg:text-8xl leading-[0.9] tracking-tighter italic mb-6">
-              CIOS <span className="text-g3/60">KERNEL</span><br/>
-              <span className="text-white/40 not-italic uppercase text-lg sm:text-2xl tracking-[0.2em]">Oṣiṣẹ Alafia</span>
+              {t.dashboard.title.split(' ')[0]} <span className="text-g3/60">{t.dashboard.title.split(' ')[1]}</span><br/>
+              <span className="text-white/40 not-italic uppercase text-lg sm:text-2xl tracking-[0.2em]">{t.dashboard.subtitle}</span>
             </h1>
             <p className="font-mono text-xs sm:text-sm text-white/40 leading-relaxed mb-8 max-w-2xl">
-              Artificial Intelligence tailored for Funmilola Home, Ogbomosho. Monitoring health vectors across geriatric wards with Zero-Law clinician oversight.
+              {t.dashboard.description}
             </p>
             <div className="flex flex-wrap gap-4">
               <button 
                 onClick={() => setIsSearchOpen(true)}
                 className="flex items-center gap-3 px-6 py-3 bg-g3 text-ink font-syne font-black uppercase tracking-widest text-xs rounded-xl hover:scale-[0.98] transition-transform shadow-lg shadow-g/20"
               >
-                <Search size={16}/> Command Search
+                <Search size={16}/> {t.dashboard.searchBtn}
               </button>
               <div className="flex items-center gap-2 px-4 py-2 bg-white/5 rounded-xl border border-white/5">
                 <div className="w-1.5 h-1.5 rounded-full bg-g3 animate-pulse" />
-                <span className="font-mono text-[9px] text-white/50 uppercase tracking-widest">Node: Ogbomosho-01</span>
+                <span className="font-mono text-[9px] text-white/50 uppercase tracking-widest">{t.dashboard.node}</span>
               </div>
             </div>
           </div>
 
           <div className="w-full lg:w-80 grid gap-3">
-            <h5 className="font-mono text-[9px] text-white/20 uppercase tracking-widest mb-2 px-2">Essential Protocols</h5>
+            <h5 className="font-mono text-[9px] text-white/20 uppercase tracking-widest mb-2 px-2">{t.dashboard.protocols}</h5>
             {[
-              { l: "Emergency Alert", s: "Pajawiri !!", i: <ShieldAlert size={16}/>, c: "text-red bg-red/5 border-red/20" },
-              { l: "Ward Handover", s: "Ijabọ Iṣẹ", i: <Activity size={16}/>, c: "text-blue bg-blue/5 border-blue/20" },
-              { l: "Supply Inventory", s: "Atokọ", i: <Home size={16}/>, c: "text-gold bg-gold/5 border-gold/20" },
+              { l: t.dashboard.emergency, s: "Pajawiri !!", i: <ShieldAlert size={16}/>, c: "text-red bg-red/5 border-red/20" },
+              { l: t.dashboard.handover, s: "Ijabọ Iṣẹ", i: <Activity size={16}/>, c: "text-blue bg-blue/5 border-blue/20" },
+              { l: t.dashboard.inventory, s: "Atokọ", i: <Home size={16}/>, c: "text-gold bg-gold/5 border-gold/20" },
             ].map((act, i) => (
               <button key={i} className={`flex items-center gap-4 p-4 rounded-2xl border transition-all hover:bg-white/5 group ${act.c}`}>
                 <div className="group-hover:scale-110 transition-transform">{act.i}</div>
@@ -341,10 +473,10 @@ const Dashboard = ({ onSelectServiceUser, setIsSearchOpen }: SectionProps) => {
       {/* Grid Stats */}
       <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         {[
-          { v: SERVICE_USERS.length.toString(), l: "Service User Population", sub: "Capacity: 100", c: "text-g3" },
-          { v: CARE_MODULES.length.toString(), l: "Care Domains", sub: "Operational", c: "text-blue" },
-          { v: SERVICE_USERS.filter(r => r.warn).length.toString(), l: "Pending Alerts", sub: "Awaiting Action", c: "text-red" },
-          { v: "97%", l: "AI Precision", sub: "Confidence Level", c: "text-gold" },
+          { v: serviceUsers.length.toString(), l: t.dashboard.stats.population, sub: "Capacity: 100", c: "text-g3" },
+          { v: CARE_MODULES.length.toString(), l: t.dashboard.stats.domains, sub: "Operational", c: "text-blue" },
+          { v: serviceUsers.filter(r => r.warn).length.toString(), l: t.dashboard.stats.alerts, sub: "Awaiting Action", c: "text-red" },
+          { v: "97%", l: t.dashboard.stats.precision, sub: "Confidence Level", c: "text-gold" },
         ].map((s, i) => (
           <motion.div 
             key={i} 
@@ -365,10 +497,10 @@ const Dashboard = ({ onSelectServiceUser, setIsSearchOpen }: SectionProps) => {
         <div className="absolute inset-0 bg-red/10 blur-3xl opacity-20" />
         <div className="glass bg-red/[0.03] border-red/20 rounded-2xl p-6 relative z-10">
           <h5 className="font-syne font-black text-[11px] text-red tracking-[0.2em] mb-6 uppercase flex items-center gap-3">
-            <span className="w-2 h-2 rounded-full bg-red animate-pulse" /> Critical Monitor
+            <span className="w-2 h-2 rounded-full bg-red animate-pulse" /> {t.dashboard.criticalMonitor}
           </h5>
           <div className="grid gap-3">
-            {SERVICE_USERS.filter(r => r.warn).map((r, i) => (
+            {serviceUsers.filter(r => r.warn).map((r, i) => (
               <motion.div 
                 key={r.id} 
                 initial={{ x: -20, opacity: 0 }}
@@ -396,7 +528,7 @@ const Dashboard = ({ onSelectServiceUser, setIsSearchOpen }: SectionProps) => {
       {/* Care Wards */}
       <section>
         <h6 className="font-mono text-[9px] text-white/20 tracking-[0.4em] mb-8 uppercase flex items-center gap-4">
-          <span className="w-12 h-[1px] bg-white/10" /> Registered Care Modules
+          <span className="w-12 h-[1px] bg-white/10" /> {t.dashboard.registeredModules}
         </h6>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {CARE_MODULES.map((m, i) => (
@@ -433,22 +565,22 @@ const Dashboard = ({ onSelectServiceUser, setIsSearchOpen }: SectionProps) => {
   );
 };
 
-const ServiceUsers = ({ onSelectServiceUser }: SectionProps) => {
+const ServiceUsers = ({ onSelectServiceUser, serviceUsers = SERVICE_USERS, t }: SectionProps & { serviceUsers?: ServiceUser[], t: any }) => {
   const [filter, setFilter] = useState("all");
   const wards = ["all", "Residential A", "Residential B", "Palliative Care", "Neuro-Rehab", "Complex Care", "Home Care"];
-  const filtered = filter === "all" ? SERVICE_USERS : SERVICE_USERS.filter(r => r.ward === filter);
+  const filtered = filter === "all" ? serviceUsers : serviceUsers.filter(r => r.ward === filter);
 
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-10">
       <header className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-6">
         <div>
-          <h2 className="font-syne font-black text-4xl tracking-tighter mb-2 italic">Service User <span className="text-g3/60">Registry</span></h2>
-          <p className="font-mono text-xs text-white/30 uppercase tracking-widest">Active Ward Monitoring · OGB Node-01</p>
+          <h2 className="font-syne font-black text-4xl tracking-tighter mb-2 italic">{t.serviceUsers.title.split(' ')[0]} <span className="text-g3/60">{t.serviceUsers.title.split(' ').slice(1).join(' ')}</span></h2>
+          <p className="font-mono text-xs text-white/30 uppercase tracking-widest">{t.serviceUsers.subtitle} · OGB Node-01</p>
         </div>
         <div className="flex flex-wrap gap-2">
           {wards.map(w => (
             <button key={w} onClick={() => setFilter(w)} className={`font-mono text-[9px] px-5 py-2 rounded-xl border transition-all uppercase tracking-widest ${filter === w ? "glass bg-g3/10 border-g3/40 text-g3 font-bold" : "bg-white/5 border-white/5 text-white/30 hover:border-white/20"}`}>
-              {w === "all" ? "Full Home for the Aged" : w}
+              {w === "all" ? t.serviceUsers.filterAll : w}
             </button>
           ))}
         </div>
@@ -469,8 +601,8 @@ const ServiceUsers = ({ onSelectServiceUser }: SectionProps) => {
               <div>
                 <h3 className="font-syne font-black text-xl text-white/90 mb-1 tracking-tight group-hover:text-g3 transition-colors">{r.name}</h3>
                 <div className="font-mono text-[10px] text-white/30 flex flex-wrap gap-x-6 gap-y-1 uppercase tracking-widest">
-                  <span>ID: {r.id}</span>
-                  <span>Age: {r.age}</span>
+                  <span>{t.serviceUsers.idLabel}: {r.id}</span>
+                  <span>{t.serviceUsers.ageLabel}: {r.age}</span>
                   <span className="text-g3/40">{r.ward}</span>
                 </div>
                 <div className="flex flex-wrap gap-2 mt-4">
@@ -500,10 +632,10 @@ const ServiceUsers = ({ onSelectServiceUser }: SectionProps) => {
   );
 };
 
-const Advisory = ({ configs, key }: { configs: AIConfig[], key?: string }) => {
+const Advisory = ({ configs, t, lang }: { configs: AIConfig[], t: any, lang: Language }) => {
   const [mode, setMode] = useState<"serviceUser" | "examiner" | "mentor">("serviceUser");
   const [messages, setMessages] = useState<Message[]>([
-    { role: "assistant", content: `CIOS Online for Funmilola Home for the Aged, Ogbomosho.\n\nMode: ${mode.toUpperCase()}\nStatus: ZeroLaw Enforced.\n\nSession initialized. Doctor oversight required for all output.`, ts: new Date() }
+    { role: "assistant", content: `CIOS Online for Funmilola Home for the Aged, Ogbomosho.\n\nMode: ${mode.toUpperCase()}\nStatus: ${t.advisory.statusEnforced}.\n\n${t.advisory.sessionInit}`, ts: new Date() }
   ]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -531,7 +663,8 @@ const Advisory = ({ configs, key }: { configs: AIConfig[], key?: string }) => {
     try {
       const systemInstruction = `You are CIOS, a Clinical Intelligence OS for Funmilola Home for the Aged, Ogbomosho, Nigeria. 
       MODE: ${mode.toUpperCase()}
-      Zero-Law Protocol: Emphasize that AI advice is secondary to physician judgment. Responses must be clinical and technical.`;
+      Zero-Law Protocol: Emphasize that AI advice is secondary to physician judgment. Responses must be clinical and technical.
+      LANGUAGE: The user is interacting in ${lang === 'yo' ? 'Yoruba' : 'English'}. Respond in the user's language unless clinical terms are better expressed in English.`;
 
       const response = await callAI(
         currentInput, 
@@ -553,7 +686,7 @@ const Advisory = ({ configs, key }: { configs: AIConfig[], key?: string }) => {
   return (
     <div className="grid grid-cols-1 lg:grid-cols-[320px_1fr] gap-10 h-[calc(100vh-220px)] md:h-[calc(100vh-180px)]">
       <div className="hidden lg:block space-y-6 overflow-y-auto pr-4">
-        <h3 className="font-syne font-black text-2xl tracking-tighter italic mb-8 text-white/80">Intelligence <span className="text-g3/60">Module</span></h3>
+        <h3 className="font-syne font-black text-2xl tracking-tighter italic mb-8 text-white/80">{t.advisory.title.split(' ')[0]} <span className="text-g3/60">{t.advisory.title.split(' ').slice(1).join(' ')}</span></h3>
         {modes.map(m => (
           <button 
             key={m.id} 
@@ -592,7 +725,9 @@ const Advisory = ({ configs, key }: { configs: AIConfig[], key?: string }) => {
                 {m.role === "user" ? "Protocol User" : "CIOS Kernel"} · {m.ts.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
               </div>
               <div className={`max-w-[90%] md:max-w-[80%] p-6 rounded-3xl text-xs md:text-sm font-mono leading-relaxed shadow-xl ${m.role === "user" ? "glass-dark border-g3/20 bg-g3/[0.03] text-white/90" : m.role === "error" ? "glass shadow-red/10 border-red/20 text-red" : "glass border-white/10 text-white/70"}`}>
-                {m.content}
+                <div className="markdown-body prose prose-invert prose-xs max-w-none">
+                  <Markdown>{m.content}</Markdown>
+                </div>
               </div>
             </motion.div>
           ))}
@@ -628,7 +763,7 @@ const Advisory = ({ configs, key }: { configs: AIConfig[], key?: string }) => {
               disabled={!input.trim() || isLoading}
               className="px-8 rounded-xl bg-g font-syne font-black text-xs uppercase tracking-widest text-white hover:bg-g3 transition-all disabled:opacity-10 active:scale-95 flex items-center justify-center"
             >
-              Consult
+              {t.advisory.consultBtn}
             </button>
           </div>
           <div className="flex justify-between mt-4 font-mono text-[9px] text-white/10 uppercase tracking-[0.4em] px-4 font-black italic">
@@ -776,12 +911,43 @@ const ServiceUserModal = ({ serviceUser, onClose, configs }: { serviceUser: Serv
 
 export default function App() {
   const [view, setView] = useState<string>("dashboard");
+  const [lang, setLang] = useState<Language>("en");
+  const t = TRANSLATIONS[lang];
   const [selectedServiceUser, setSelectedServiceUser] = useState<ServiceUser | null>(null);
   const [time, setTime] = useState(new Date());
   const [isAuthorized, setIsAuthorized] = useState<boolean>(!!process.env.GEMINI_API_KEY);
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [isSimulating, setIsSimulating] = useState(false);
+  const [simulatedUsers, setSimulatedUsers] = useState<ServiceUser[]>(SERVICE_USERS);
+  const [notifications, setNotifications] = useState<{id: number, msg: string, type: 'info' | 'alert'}[]>([]);
+
+  // Simulation Data Jitter
+  useEffect(() => {
+    if (!isSimulating) return;
+
+    const interval = setInterval(() => {
+      setSimulatedUsers(current => current.map(u => {
+        // Randomly jitter vitals slightly
+        const jitter = (val: number, range: number) => +(val + (Math.random() * range - range/2)).toFixed(1);
+        const newTemp = jitter(u.vitals.temp, 0.4);
+        const newHr = Math.round(jitter(u.vitals.hr, 4));
+        const newSpo2 = Math.min(100, Math.max(88, Math.round(jitter(u.vitals.spo2, 1))));
+        
+        // Trigger random alerts for demo
+        if (Math.random() > 0.985 && !u.warn) {
+          setNotifications(prev => [{ id: Date.now(), msg: `Vitals Deviation: ${u.name} (${u.ward})`, type: 'alert' }, ...prev.slice(0, 4)]);
+          return { ...u, warn: true, vitals: { ...u.vitals, temp: newTemp, hr: newHr, spo2: newSpo2 } };
+        }
+
+        return { ...u, vitals: { ...u.vitals, temp: newTemp, hr: newHr, spo2: newSpo2 } };
+      }));
+    }, 2500);
+
+    return () => clearInterval(interval);
+  }, [isSimulating]);
+
   const [aiConfigs, setAiConfigs] = useState<AIConfig[]>(() => {
     // Check URL for remote config first
     const params = new URLSearchParams(window.location.search);
@@ -828,12 +994,12 @@ export default function App() {
     };
   }, []);
 
-  const navItems = [
-    { id: "dashboard", label: "Kernel", icon: <Activity size={18}/> },
-    { id: "service_users", label: "Wards", icon: <Users size={18}/> },
-    { id: "advisory", label: "Intelligence", icon: <Brain size={18}/> },
-    { id: "staff", label: "Medical", icon: <Stethoscope size={18}/> },
-    { id: "settings", label: "System", icon: <SettingsIcon size={18}/> },
+  const navItems: { id: string; label: string; icon: React.ReactElement }[] = [
+    { id: "dashboard", label: t.nav.dashboard, icon: <Activity size={18}/> },
+    { id: "service_users", label: t.nav.wards, icon: <Users size={18}/> },
+    { id: "advisory", label: t.nav.intelligence, icon: <Brain size={18}/> },
+    { id: "staff", label: t.nav.staff, icon: <Heart size={18}/> },
+    { id: "settings", label: t.nav.settings, icon: <SettingsIcon size={18}/> },
   ];
 
   return (
@@ -852,42 +1018,164 @@ export default function App() {
           <div className="w-8 h-8 rounded-lg bg-white flex items-center justify-center font-syne font-black text-xs text-ink shadow-[0_0_20px_rgba(255,255,255,0.2)]">F</div>
           <div className="hidden min-[450px]:block">
             <div className="font-syne font-black text-sm tracking-tighter leading-none text-white/90">CIOS <span className="text-g3">AGENT</span></div>
-            <div className="font-mono text-[8px] text-white/20 tracking-[0.3em] uppercase mt-1">Ogbomosho Node · Fully Active</div>
+            <div className="font-mono text-[8px] text-white/20 tracking-[0.3em] uppercase mt-1">{t.status.nodeStatus}</div>
           </div>
         </div>
 
         {/* Desktop Nav Items */}
-        <div className="hidden md:flex gap-1">
+        <div className="hidden md:flex gap-1 items-center">
           {navItems.map(item => (
             <button 
               key={item.id} 
               onClick={() => setView(item.id)}
               className={`flex items-center gap-2 px-4 py-1.5 rounded-full font-mono text-[9px] uppercase tracking-wider transition-all whitespace-nowrap ${view === item.id ? "bg-white/5 text-g3 font-bold" : "text-white/25 hover:text-white/50"}`}
             >
-              {React.cloneElement(item.icon as React.ReactElement, { size: 14 })} <span>{item.label}</span>
+              {React.cloneElement(item.icon as React.ReactElement<any>, { size: 14 })} <span>{item.label}</span>
             </button>
           ))}
+          <div className="w-px h-4 bg-white/5 mx-2" />
+          <button 
+            onClick={() => setIsSimulating(!isSimulating)}
+            className={`flex items-center gap-2 px-4 py-1.5 rounded-full border transition-all font-mono text-[8px] uppercase tracking-widest font-black ${isSimulating ? "bg-red/10 border-red/40 text-red animate-pulse" : "bg-white/5 border-white/5 text-white/20 hover:text-white/40"}`}
+            title="Toggle Live Simulation Demo"
+          >
+            <Activity size={12} className={isSimulating ? "animate-spin" : ""} />
+            <span>{isSimulating ? t.status.stimulationLive : t.status.stimulateBtn}</span>
+          </button>
         </div>
 
         <div className="flex items-center gap-3 md:gap-4">
           <div className="hidden sm:flex flex-col items-end">
             <span className="font-mono text-[9px] text-white/60 tabular-nums">{time.toLocaleTimeString([], { hour12: false })}</span>
-            <span className={`font-mono text-[7px] uppercase tracking-widest ${isAuthorized ? 'text-g3' : 'text-gold'} animate-pulse`}>
-              {isAuthorized ? 'Kernel Synchronized' : 'Awaiting Authorization'}
+            <span className={`font-mono text-[7px] uppercase tracking-widest ${isSimulating ? 'text-red' : isAuthorized ? 'text-g3' : 'text-gold'} animate-pulse`}>
+              {isSimulating ? t.status.simulating : isAuthorized ? t.status.authorized : t.status.unauthorized}
             </span>
           </div>
-          <div className={`w-2 h-2 rounded-full ${isAuthorized ? 'bg-g' : 'bg-gold'} animate-pulse`} />
+          <div className={`w-2 h-2 rounded-full ${isSimulating ? 'bg-red' : isAuthorized ? 'bg-g' : 'bg-gold'} animate-pulse`} />
+          
+          <div className="w-px h-6 bg-white/10 mx-2" />
+          
+          <button 
+            onClick={() => setLang(lang === "en" ? "yo" : "en")}
+            className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-white/10 hover:bg-white/5 transition-all group"
+            title="Switch Language / Yí Èdè Padà"
+          >
+            <Globe size={14} className="text-g3 group-hover:rotate-12 transition-transform" />
+            <span className="font-mono text-[10px] font-black uppercase tracking-widest text-white/60">
+              {lang === "en" ? "EN" : "YOR"}
+            </span>
+          </button>
         </div>
       </nav>
+
+      {/* Simulation Feed Overlay */}
+      <AnimatePresence>
+        {isSimulating && (
+          <motion.div 
+            initial={{ x: 400, opacity: 0 }}
+            animate={{ x: 0, opacity: 1 }}
+            exit={{ x: 400, opacity: 0 }}
+            className="fixed right-6 top-24 bottom-24 w-80 z-40 hidden xl:flex flex-col gap-4 pointer-events-none"
+          >
+            <div className="glass-dark p-6 rounded-3xl border-g3/20 border flex flex-col gap-4 pointer-events-auto shadow-2xl h-full">
+              <div className="flex justify-between items-center bg-g3/10 p-3 -m-3 mb-2 rounded-t-3xl border-b border-g3/20">
+                <div className="flex items-center gap-2 text-g3">
+                  <Cpu size={14} className="animate-pulse" />
+                  <span className="font-mono text-[10px] font-black uppercase tracking-widest">{t.status.liveFeed}</span>
+                </div>
+                <div className="font-mono text-[8px] text-g3/40 uppercase">Aesthetic-01</div>
+              </div>
+              
+              <div className="flex-1 space-y-3 overflow-y-auto no-scrollbar py-2">
+                {notifications.map((n) => (
+                  <motion.div 
+                    layout
+                    initial={{ x: 20, opacity: 0 }}
+                    animate={{ x: 0, opacity: 1 }}
+                    key={n.id} 
+                    className={`p-3 rounded-xl border flex gap-3 transition-colors ${n.type === 'alert' ? 'bg-red/5 border-red/40 text-red' : 'bg-white/5 border-white/10 text-white/40'}`}
+                  >
+                    <div className="pt-1">{n.type === 'alert' ? <ShieldAlert size={12}/> : <Activity size={12}/>}</div>
+                    <div className="flex-1">
+                      <div className="font-mono text-[9px] font-bold leading-tight">{n.msg}</div>
+                      <div className="font-mono text-[7px] opacity-40 mt-1 uppercase tracking-widest">CIOS Secure Logic · Node OGB-01</div>
+                    </div>
+                  </motion.div>
+                ))}
+                {notifications.length === 0 && (
+                  <div className="flex flex-col items-center justify-center h-full text-white/10 text-center">
+                    <Layers size={32} className="mb-4 opacity-5" />
+                    <span className="font-mono text-[8px] uppercase tracking-[0.3em] font-black">{t.status.waitSim}</span>
+                  </div>
+                )}
+              </div>
+
+              <div className="mt-auto border-t border-white/10 pt-4 space-y-2">
+                <button 
+                  onClick={async () => {
+                    const u = simulatedUsers[1]; // Mama Adeola
+                    setNotifications(prev => [{ id: Date.now(), msg: `SCENARIO START: Mama Adeola Monitoring`, type: 'info' }, ...prev]);
+                    
+                    // Step 1: Vitals Drop
+                    setTimeout(() => {
+                      setNotifications(prev => [{ id: Date.now(), msg: `CRITICAL: SpO2 dipping below thresholds`, type: 'alert' }, ...prev]);
+                      setSimulatedUsers(prev => prev.map(usr => usr.id === u.id ? { ...usr, warn: true, vitals: { ...usr.vitals, spo2: 91 } } : usr));
+                    }, 2000);
+
+                    // Step 2: Auto-Open Modal
+                    setTimeout(() => {
+                      setSelectedServiceUser(u);
+                      setNotifications(prev => [{ id: Date.now(), msg: `CIOS: Initiating Diagnostic Modal...`, type: 'info' }, ...prev]);
+                    }, 4000);
+
+                    // Step 3: AI Advisory
+                    setTimeout(() => {
+                      setNotifications(prev => [{ id: Date.now(), msg: `AI: Generating Geriatric Protocol...`, type: 'info' }, ...prev]);
+                    }, 6000);
+                  }}
+                  className="w-full py-3 bg-g3 hover:bg-g border border-g3/30 rounded-xl font-mono text-[8px] uppercase text-ink font-black tracking-widest transition-all active:scale-95 flex items-center justify-center gap-2"
+                >
+                  <Brain size={12} /> Run Scenario Alpha
+                </button>
+                <div className="grid grid-cols-2 gap-2">
+                <button 
+                  onClick={() => {
+                    const u = simulatedUsers[Math.floor(Math.random() * simulatedUsers.length)];
+                    setNotifications(prev => [{ id: Date.now(), msg: `Critical Stimulus: SpO2 Drop Detect @ ${u.name}`, type: 'alert' }, ...prev.slice(0, 10)]);
+                    setSimulatedUsers(prev => prev.map(usr => usr.id === u.id ? { ...usr, warn: true, vitals: { ...usr.vitals, spo2: 89, hr: 112 } } : usr));
+                  }}
+                  className="py-3 bg-red/10 hover:bg-red/20 border border-red/30 rounded-xl font-mono text-[8px] uppercase text-red font-black tracking-widest transition-all active:scale-95"
+                >
+                  Force Alert
+                </button>
+                <button 
+                  onClick={() => {
+                    setNotifications([]);
+                    setSimulatedUsers(SERVICE_USERS);
+                  }}
+                  className="py-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl font-mono text-[8px] uppercase text-white/40 font-black tracking-widest transition-all active:scale-95"
+                >
+                  Clear Node
+                </button>
+              </div>
+            </div>
+          </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Main Content */}
       <main className="flex-1 w-full max-w-6xl mx-auto px-4 md:px-6 pt-20 md:pt-24 pb-24 md:pb-20 transition-all">
         <AnimatePresence mode="wait">
-          {view === "dashboard" && <Dashboard key="dash" onSelectServiceUser={setSelectedServiceUser} setIsSearchOpen={setIsSearchOpen}/>}
-          {view === "service_users" && <ServiceUsers key="res" onSelectServiceUser={setSelectedServiceUser}/>}
-          {view === "advisory" && <Advisory key="adv" configs={aiConfigs} />}
+          {view === "dashboard" && <Dashboard key="dash" onSelectServiceUser={setSelectedServiceUser} setIsSearchOpen={setIsSearchOpen} serviceUsers={simulatedUsers} t={t} />}
+          {view === "service_users" && <ServiceUsers key="res" onSelectServiceUser={setSelectedServiceUser} serviceUsers={simulatedUsers} t={t} />}
+          {view === "advisory" && <Advisory configs={aiConfigs} t={t} lang={lang} />}
           {view === "staff" && (
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div className="col-span-full mb-8">
+                <h2 className="font-syne font-black text-4xl tracking-tighter mb-2 italic">{t.staff.title.split(' ')[0]} <span className="text-g3/60">{t.staff.title.split(' ').slice(1).join(' ')}</span></h2>
+                <p className="font-mono text-xs text-white/30 uppercase tracking-widest">{t.staff.subtitle} · OGB Node-01</p>
+              </div>
               {STAFF.map((s, i) => (
                 <div key={i} className="p-4 md:p-5 rounded-xl border border-white/5 bg-white/2">
                   <div className="flex items-center gap-4 mb-4">
@@ -903,11 +1191,16 @@ export default function App() {
             </motion.div>
           )}
           {view === "settings" && (
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="max-w-4xl space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-12">
+              <div>
+                <h2 className="font-syne font-black text-4xl tracking-tighter mb-2 italic">{t.settings.title.split(' ')[0]} <span className="text-g3/60">{t.settings.title.split(' ').slice(1).join(' ')}</span></h2>
+                <p className="font-mono text-xs text-white/30 uppercase tracking-widest">{t.settings.subtitle} · OGB Node-01</p>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl">
                 <div className="p-6 rounded-xl border border-white/5 bg-white/2">
                   <h3 className="font-syne font-bold text-lg mb-4 flex items-center gap-3">
-                    <Layers size={18} className="text-white/40" /> Infrastructure
+                    <Layers size={18} className="text-white/40" /> {t.settings.infrastructure}
                   </h3>
                   <div className="space-y-4 font-mono text-[10px] text-white/40">
                     <div className="flex justify-between border-b border-white/5 pb-2"><span>Deployment</span> <span>Funmilola Home for the Aged Ogbomosho v2.4</span></div>
@@ -919,7 +1212,7 @@ export default function App() {
 
                 <div className="p-6 rounded-xl border border-gold/20 bg-gold/5 flex flex-col justify-center">
                   <h3 className="font-syne font-bold text-lg mb-2 text-gold flex items-center gap-3">
-                    <Cpu size={18} /> Logic Status
+                    <Cpu size={18} /> {t.settings.logicStatus}
                   </h3>
                   <p className="font-mono text-xs text-white/50 leading-relaxed mb-4">
                     Intelligence matrix is operating at peak precision. Cascade routing is active with {aiConfigs.filter(c => c.apiKey || c.provider === "gemini" || c.provider === "ollama").length} healthy providers.
@@ -932,17 +1225,17 @@ export default function App() {
               </div>
 
               {/* AI Routing Panel */}
-              <div className="p-6 md:p-10 rounded-3xl border border-white/5 bg-white/[0.02]">
+              <div className="p-6 md:p-10 rounded-3xl border border-white/5 bg-white/[0.02] max-w-4xl">
                 <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
                   <div>
-                    <h2 className="font-syne font-black text-2xl tracking-tighter italic">Intelligence <span className="text-g3/60">Routing</span></h2>
+                    <h2 className="font-syne font-black text-2xl tracking-tighter italic">{t.settings.routing.split(' ')[0]} <span className="text-g3/60">{t.settings.routing.split(' ').slice(1).join(' ')}</span></h2>
                     <p className="font-mono text-[10px] text-white/20 uppercase tracking-widest mt-1">Provider Cascade Configuration</p>
                   </div>
                   <button 
                     onClick={() => setAiConfigs(DEFAULT_AI_CONFIGS)}
                     className="flex items-center gap-2 px-4 py-2 bg-white/5 rounded-full font-mono text-[8px] uppercase tracking-widest text-white/40 hover:text-white transition-all whitespace-nowrap"
                   >
-                    <RefreshCw size={12} /> Reset to Default
+                    <RefreshCw size={12} /> {t.settings.reset}
                   </button>
                 </div>
 
@@ -1140,7 +1433,7 @@ export default function App() {
             onClick={() => setView(item.id)}
             className={`flex flex-col items-center gap-2 transition-all px-4 py-2 rounded-xl ${view === item.id ? "text-g3 bg-white/5 shadow-[inset_0_0_10px_rgba(106,212,154,0.1)]" : "text-white/20"}`}
           >
-            {React.cloneElement(item.icon as React.ReactElement, { size: 18 })}
+            {React.cloneElement(item.icon as React.ReactElement<any>, { size: 18 })}
             <span className="font-mono text-[7px] font-black uppercase tracking-widest">{item.label}</span>
           </button>
         ))}
@@ -1234,7 +1527,7 @@ export default function App() {
               </div>
               <div className="p-4 max-h-[60vh] overflow-y-auto">
                 <div className="font-mono text-[8px] text-white/20 uppercase tracking-[0.3em] mb-4 px-2">Navigation & Intelligence</div>
-                {navItems.concat(CARE_MODULES.map(m => ({ id: m.id, label: m.label, icon: m.icon }))).filter(i => i.label.toLowerCase().includes(searchQuery.toLowerCase())).map((item, idx) => (
+                {navItems.concat(CARE_MODULES.map(m => ({ id: m.id, label: m.label, icon: m.icon })) as { id: string; label: string; icon: React.ReactElement }[]).filter(i => i.label.toLowerCase().includes(searchQuery.toLowerCase())).map((item, idx) => (
                   <button 
                     key={idx}
                     onClick={() => {
@@ -1244,7 +1537,7 @@ export default function App() {
                     className="w-full flex items-center gap-4 p-4 hover:bg-white/5 rounded-2xl transition-all group"
                   >
                     <div className="w-10 h-10 bg-white/5 rounded-xl flex items-center justify-center text-white/40 group-hover:text-g3 transition-colors">
-                      {React.cloneElement(item.icon as React.ReactElement, { size: 18 })}
+                      {React.cloneElement(item.icon as React.ReactElement<any>, { size: 18 })}
                     </div>
                     <div className="text-left flex-1">
                       <div className="font-syne font-bold text-white/80 group-hover:text-white transition-colors">{item.label}</div>
